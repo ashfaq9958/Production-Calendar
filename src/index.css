@@ -53,6 +53,18 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Status tokens */
+    --status-completed: 152 45% 40%; /* green */
+    --status-inprogress: 199 89% 48%; /* blue */
+    --status-cancelled: 220 9% 60%; /* grey */
+    --status-planned: 40 96% 50%; /* amber outline */
+
+    /* Area color tokens for chips */
+    --area-a: 198 83% 54%;
+    --area-b: 159 64% 45%;
+    --area-c: 262 83% 66%;
+    --area-d: 17 92% 56%;
   }
 
   .dark {
