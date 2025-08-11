@@ -1,5 +1,19 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { addDays, differenceInCalendarDays, formatISO, isWithinInterval, parseISO, startOfDay } from "date-fns";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  addDays,
+  differenceInCalendarDays,
+  formatISO,
+  isWithinInterval,
+  parseISO,
+  startOfDay,
+} from "date-fns";
 
 export type OrderStatus = "completed" | "in_progress" | "cancelled" | "planned";
 
@@ -12,6 +26,7 @@ export interface ProductionOrder {
   status: OrderStatus;
   color: string; // hsl(var(--...)) string to link with area color
   progress: number; // 0..100
+  code?: string | any;
 }
 
 export type ViewMode = "month" | "week";
@@ -23,7 +38,7 @@ interface OrdersContextValue {
 
   viewDate: Date;
   setViewDate: (d: Date) => void;
-  viewMode: ViewMode;
+  viewMode: ViewMode | any;
   setViewMode: (m: ViewMode) => void;
   gotoPrev: () => void;
   gotoNext: () => void;
@@ -32,15 +47,21 @@ interface OrdersContextValue {
   filters: Set<OrderStatus>;
   toggleFilter: (s: OrderStatus) => void;
   clearFilters: () => void;
+  filterStatuses: OrderStatus[];
 
   hoveredId?: string | null;
   setHoveredId: (id: string | null) => void;
   selectedId?: string | null;
   setSelectedId: (id: string | null) => void;
 
-  addOrder: (input: Omit<ProductionOrder, "id" | "progress"> & { progress?: number }) => { ok: true; order: ProductionOrder } | { ok: false; error: string };
+  addOrder: (
+    input: Omit<ProductionOrder, "id" | "progress"> & { progress?: number }
+  ) => { ok: true; order: ProductionOrder } | { ok: false; error: string };
   updateOrder: (id: string, patch: Partial<ProductionOrder>) => void;
-  moveOrderByDays: (id: string, dayDelta: number) => { ok: true } | { ok: false; error: string };
+  moveOrderByDays: (
+    id: string,
+    dayDelta: number
+  ) => { ok: true } | { ok: false; error: string };
 }
 
 const OrdersContext = createContext<OrdersContextValue | null>(null);
@@ -55,6 +76,18 @@ function uuid8() {
     .join("");
 }
 
+function uid8() {
+  try {
+    return crypto.randomUUID().slice(0, 8);
+  } catch {
+    return Math.random().toString(16).slice(2, 10);
+  }
+}
+
+function newCode() {
+  return `#${uid8().toUpperCase()}`;
+}
+
 const defaultAreas = [
   { key: "A", label: "Area A", colorVar: "--area-a" },
   { key: "B", label: "Area B", colorVar: "--area-b" },
@@ -62,7 +95,13 @@ const defaultAreas = [
   { key: "D", label: "Area D", colorVar: "--area-d" },
 ];
 
-const sampleAssignees = ["Alex Kim", "Jordan Lee", "Sam Patel", "Taylor Quinn", "Morgan Yu"];
+const sampleAssignees = [
+  "Alex Kim",
+  "Jordan Lee",
+  "Sam Patel",
+  "Taylor Quinn",
+  "Morgan Yu",
+];
 
 function startIso(d: Date) {
   return formatISO(startOfDay(d), { representation: "date" });
@@ -72,12 +111,18 @@ function daysBetweenInclusive(start: string, end: string) {
   return differenceInCalendarDays(parseISO(end), parseISO(start)) + 1;
 }
 
-export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [orders, setOrders] = useState<ProductionOrder[]>(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
+    console.log(raw);
     if (raw) {
       try {
-        return JSON.parse(raw) as ProductionOrder[];
+        // return JSON.parse(raw) as ProductionOrder[];
+        let parsed = JSON.parse(raw) as ProductionOrder[];
+        parsed = parsed.map((o) => ({ ...o, code: o.code ?? newCode() }));
+        return parsed;
       } catch {}
     }
     // Seed with a few sample orders for a great first impression
@@ -89,7 +134,8 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       length: number,
       colorVar: string,
       assignee: string,
-      progress: number
+      progress: number,
+      // code: string | any
     ): ProductionOrder => ({
       id: uuid8(),
       area,
@@ -99,18 +145,57 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       color: `hsl(var(${colorVar}))`,
       assignee,
       progress,
+      code: newCode(),
     });
     return [
-      make("Area A", "planned", -3, 2, "--area-a", sampleAssignees[0], 0),
-      make("Area B", "in_progress", -2, 3, "--area-b", sampleAssignees[1], 60),
-      make("Area C", "completed", 1, 2, "--area-c", sampleAssignees[2], 100),
-      make("Area D", "cancelled", 5, 1, "--area-d", sampleAssignees[3], 0),
+      make(
+        "Area A",
+        "planned",
+        -3,
+        2,
+        "--area-a",
+        sampleAssignees[0],
+        0,
+        // "PO-001"
+      ),
+      make(
+        "Area B",
+        "in_progress",
+        -2,
+        3,
+        "--area-b",
+        sampleAssignees[1],
+        60,
+        // "PO-002"
+      ),
+      make(
+        "Area C",
+        "completed",
+        1,
+        2,
+        "--area-c",
+        sampleAssignees[2],
+        100,
+        // "PO-003"
+      ),
+      make(
+        "Area D",
+        "cancelled",
+        5,
+        1,
+        "--area-d",
+        sampleAssignees[3],
+        0,
+        // "PO-004"
+      ),
     ];
   });
 
   const [viewDate, setViewDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
-  const [filters, setFilters] = useState<Set<OrderStatus>>(new Set(["completed", "in_progress", "cancelled", "planned"]));
+  const [filters, setFilters] = useState<Set<OrderStatus>>(
+    new Set(["completed", "in_progress", "cancelled", "planned"])
+  );
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -130,7 +215,10 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const clearFilters = useCallback(() => setFilters(new Set()), []);
 
   const hasOverlap = useCallback(
-    (candidate: Omit<ProductionOrder, "id" | "progress">, excludeId?: string) => {
+    (
+      candidate: Omit<ProductionOrder, "id" | "progress">,
+      excludeId?: string
+    ) => {
       const cStart = parseISO(candidate.start);
       const cEnd = parseISO(candidate.end);
       return orders.some((o) => {
@@ -138,10 +226,12 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (o.area !== candidate.area) return false; // prevent overlaps per area
         const oStart = parseISO(o.start);
         const oEnd = parseISO(o.end);
-        return isWithinInterval(cStart, { start: oStart, end: oEnd }) ||
-               isWithinInterval(cEnd, { start: oStart, end: oEnd }) ||
-               isWithinInterval(oStart, { start: cStart, end: cEnd }) ||
-               isWithinInterval(oEnd, { start: cStart, end: cEnd });
+        return (
+          isWithinInterval(cStart, { start: oStart, end: oEnd }) ||
+          isWithinInterval(cEnd, { start: oStart, end: oEnd }) ||
+          isWithinInterval(oStart, { start: cStart, end: cEnd }) ||
+          isWithinInterval(oEnd, { start: cStart, end: cEnd })
+        );
       });
     },
     [orders]
@@ -151,11 +241,15 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     (input) => {
       const candidate = { ...input };
       if (hasOverlap(candidate)) {
-        return { ok: false, error: "Overlapping order in the same area and dates." } as const;
+        return {
+          ok: false,
+          error: "Overlapping order in the same area and dates.",
+        } as const;
       }
       const order: ProductionOrder = {
         id: uuid8(),
         progress: input.progress ?? (input.status === "completed" ? 100 : 0),
+        code: input.code ?? newCode(),
         ...candidate,
       };
       setOrders((prev) => [order, ...prev]);
@@ -164,9 +258,14 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     [hasOverlap]
   );
 
-  const updateOrder = useCallback((id: string, patch: Partial<ProductionOrder>) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
-  }, []);
+  const updateOrder = useCallback(
+    (id: string, patch: Partial<ProductionOrder>) => {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === id ? { ...o, ...patch } : o))
+      );
+    },
+    []
+  );
 
   const moveOrderByDays: OrdersContextValue["moveOrderByDays"] = useCallback(
     (id, delta) => {
@@ -174,18 +273,34 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (!o) return { ok: false, error: "Order not found" } as const;
       const newStart = startIso(addDays(parseISO(o.start), delta));
       const newEnd = startIso(addDays(parseISO(o.end), delta));
-      const candidate = { area: o.area, assignee: o.assignee ?? undefined, start: newStart, end: newEnd, status: o.status as OrderStatus, color: o.color };
+      const candidate = {
+        area: o.area,
+        assignee: o.assignee ?? undefined,
+        start: newStart,
+        end: newEnd,
+        status: o.status as OrderStatus,
+        color: o.color,
+      };
       if (hasOverlap(candidate, id)) {
-        return { ok: false, error: "Overlapping order in the same area and dates." } as const;
+        return {
+          ok: false,
+          error: "Overlapping order in the same area and dates.",
+        } as const;
       }
-      setOrders((prev) => prev.map((x) => (x.id === id ? { ...x, start: newStart, end: newEnd } : x)));
+      setOrders((prev) =>
+        prev.map((x) =>
+          x.id === id ? { ...x, start: newStart, end: newEnd } : x
+        )
+      );
       return { ok: true } as const;
     },
     [orders, hasOverlap]
   );
 
   const gotoPrev = useCallback(() => {
-    setViewDate((d) => (viewMode === "month" ? addDays(d, -30) : addDays(d, -7)));
+    setViewDate((d) =>
+      viewMode === "month" ? addDays(d, -30) : addDays(d, -7)
+    );
   }, [viewMode]);
 
   const gotoNext = useCallback(() => {
@@ -196,6 +311,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const value = useMemo<OrdersContextValue>(
     () => ({
+      filterStatuses: Array.from(filters),
       orders,
       areas: defaultAreas,
       assignees: sampleAssignees,
@@ -217,10 +333,26 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       updateOrder,
       moveOrderByDays,
     }),
-    [orders, viewDate, viewMode, gotoPrev, gotoNext, gotoThisMonth, filters, toggleFilter, hoveredId, selectedId, addOrder, updateOrder, moveOrderByDays]
+    [
+      orders,
+      viewDate,
+      viewMode,
+      gotoPrev,
+      gotoNext,
+      gotoThisMonth,
+      filters,
+      toggleFilter,
+      hoveredId,
+      selectedId,
+      addOrder,
+      updateOrder,
+      moveOrderByDays,
+    ]
   );
 
-  return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>;
+  return (
+    <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>
+  );
 };
 
 export const useOrders = () => {

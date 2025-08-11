@@ -3,7 +3,7 @@ import { ProductionCalendar } from "@/components/ProductionCalendar";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="container min-h-screen bg-background">
       <ProductionCalendar />
     </div>
   );

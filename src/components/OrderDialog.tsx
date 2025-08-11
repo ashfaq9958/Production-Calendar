@@ -12,6 +12,8 @@ import {
   Chip,
   Snackbar,
   Alert,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { useOrders, OrderStatus } from "@/context/OrdersContext";
 import { format, parseISO } from "date-fns";
@@ -43,7 +45,6 @@ export const OrderDialog: React.FC<Props> = ({ open, onClose }) => {
     const res = addOrder({ area, assignee, start, end, status, color });
     if (res.ok) {
       onClose();
-      // reset form
       setStatus("planned");
     } else {
       setError("error" in res ? res.error : "Unknown error");
@@ -51,10 +52,23 @@ export const OrderDialog: React.FC<Props> = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Create Order</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2, mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          p: 0.5,
+        },
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
+        Create New Order
+      </DialogTitle>
+      <DialogContent dividers sx={{ pt: 2 }}>
+        <Stack spacing={2}>
           <TextField
             select
             label="Area"
@@ -64,7 +78,18 @@ export const OrderDialog: React.FC<Props> = ({ open, onClose }) => {
           >
             {areas.map((a) => (
               <MenuItem key={a.key} value={a.label}>
-                <Chip size="small" sx={{ bgcolor: `hsl(var(${a.colorVar}))`, mr: 1 }} /> {a.label}
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Chip
+                    size="small"
+                    sx={{
+                      bgcolor: `hsl(var(${a.colorVar}))`,
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                    }}
+                  />
+                  <Typography>{a.label}</Typography>
+                </Stack>
               </MenuItem>
             ))}
           </TextField>
@@ -82,39 +107,53 @@ export const OrderDialog: React.FC<Props> = ({ open, onClose }) => {
             <MenuItem value="cancelled">Cancelled</MenuItem>
           </TextField>
 
-          <TextField
-            label="Start date"
-            type="date"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
-
-          <TextField
-            label="End date"
-            type="date"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              label="Start Date"
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+          </Stack>
 
           <Autocomplete
             options={assignees}
             value={assignee}
             onChange={(_, v) => setAssignee(v)}
-            renderInput={(params) => <TextField {...params} label="Assignee" />}
+            renderInput={(params) => (
+              <TextField {...params} label="Assignee" fullWidth />
+            )}
           />
-        </Box>
+        </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button color="inherit" onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleCreate}>Create Order</Button>
+
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button color="inherit" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button variant="contained" onClick={handleCreate}>
+          Create Order
+        </Button>
       </DialogActions>
 
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)}>
-        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
+      <Snackbar
+        open={!!error}
+        autoHideDuration={4000}
+        onClose={() => setError(null)}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
       </Snackbar>
     </Dialog>
   );
