@@ -1,8 +1,8 @@
-Production Calendar
+<!-- Production Calendar -->
 
-📌 Project Information
+📌 Project Information:
 
-# Live Demo: View Project
+# Live Demo: (https://production-calendar.vercel.app/)
 
 ## Overview:
 
@@ -26,7 +26,8 @@ Production Calendar is a modern, responsive web application built with React and
 
 ➕ Order Management: Create orders via a clean, user-friendly dialog.
 
-🚀 Getting Started
+<!-- 🚀 Getting Started: -->
+
 Follow these steps to run the project locally:
 
 ```sh

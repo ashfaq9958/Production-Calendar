@@ -21,11 +21,11 @@ export interface ProductionOrder {
   id: string;
   area: string;
   assignee?: string | null;
-  start: string; // ISO date (start of day)
-  end: string; // ISO date (inclusive)
+  start: string;
+  end: string;
   status: OrderStatus;
-  color: string; // hsl(var(--...)) string to link with area color
-  progress: number; // 0..100
+  color: string;
+  progress: number;
   code?: string | any;
 }
 
@@ -125,7 +125,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({
         return parsed;
       } catch {}
     }
-    // Seed with a few sample orders for a great first impression
+
     const today = startOfDay(new Date());
     const make = (
       area: string,
@@ -134,7 +134,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({
       length: number,
       colorVar: string,
       assignee: string,
-      progress: number,
+      progress: number
       // code: string | any
     ): ProductionOrder => ({
       id: uuid8(),
@@ -148,46 +148,10 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({
       code: newCode(),
     });
     return [
-      make(
-        "Area A",
-        "planned",
-        -3,
-        2,
-        "--area-a",
-        sampleAssignees[0],
-        0,
-        // "PO-001"
-      ),
-      make(
-        "Area B",
-        "in_progress",
-        -2,
-        3,
-        "--area-b",
-        sampleAssignees[1],
-        60,
-        // "PO-002"
-      ),
-      make(
-        "Area C",
-        "completed",
-        1,
-        2,
-        "--area-c",
-        sampleAssignees[2],
-        100,
-        // "PO-003"
-      ),
-      make(
-        "Area D",
-        "cancelled",
-        5,
-        1,
-        "--area-d",
-        sampleAssignees[3],
-        0,
-        // "PO-004"
-      ),
+      make("Area A", "planned", -3, 2, "--area-a", sampleAssignees[0], 0),
+      make("Area B", "in_progress", -2, 3, "--area-b", sampleAssignees[1], 60),
+      make("Area C", "completed", 1, 2, "--area-c", sampleAssignees[2], 100),
+      make("Area D", "cancelled", 5, 1, "--area-d", sampleAssignees[3], 0),
     ];
   });
 

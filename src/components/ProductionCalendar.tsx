@@ -269,11 +269,10 @@ export const ProductionCalendar: React.FC = () => {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between", // push button to the right
-            width: "100%", // take full row width
+            justifyContent: "space-between",
+            width: "100%",
           }}
         >
-          {/* Tabs Section */}
           <Tabs
             value={0}
             textColor="primary"
@@ -292,7 +291,6 @@ export const ProductionCalendar: React.FC = () => {
             <Tab label="Batch Releases" disabled />
           </Tabs>
 
-          {/* Button Section */}
           <Button
             size="small"
             variant="contained"
@@ -304,7 +302,6 @@ export const ProductionCalendar: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Main Layout */}
       <Box
         component="main"
         sx={{
@@ -314,9 +311,7 @@ export const ProductionCalendar: React.FC = () => {
           minHeight: 0,
         }}
       >
-        {/* Calendar Section */}
         <Box sx={{ p: { xs: 2, sm: 3 }, overflow: "auto" }}>
-          {/* Top Controls */}
           <Stack
             direction={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
@@ -338,7 +333,7 @@ export const ProductionCalendar: React.FC = () => {
             <Stack direction="row" spacing={1}>
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <Select
-                  value={viewMode} // 'month' or 'week'
+                  value={viewMode}
                   onChange={(e) => setViewMode(e.target.value)}
                 >
                   <MenuItem value="month">Monthly</MenuItem>
@@ -359,7 +354,6 @@ export const ProductionCalendar: React.FC = () => {
             </Stack>
           </Stack>
 
-          {/* Filters Menu */}
           <Menu
             anchorEl={filterAnchor}
             open={!!filterAnchor}
@@ -391,10 +385,8 @@ export const ProductionCalendar: React.FC = () => {
 
           <Divider sx={{ mb: 2 }} />
 
-          {/* Calendar Grid */}
           <DndContext onDragEnd={onDragEnd}>
             <Stack spacing={1}>
-              {/* Day headers */}
               <Stack direction="row" spacing={1} sx={{ px: 0.5, mb: 1 }}>
                 {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
                   <Box key={d} sx={{ flex: 1, textAlign: "center" }}>
@@ -409,7 +401,6 @@ export const ProductionCalendar: React.FC = () => {
                 ))}
               </Stack>
 
-              {/* Weeks */}
               {weeks.map((week, wi) => (
                 <Stack key={wi} direction="row" spacing={1}>
                   {week.map((date) => {
@@ -436,7 +427,6 @@ export const ProductionCalendar: React.FC = () => {
           </DndContext>
         </Box>
 
-        {/* Side Panel */}
         <OrderList />
       </Box>
 

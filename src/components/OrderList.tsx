@@ -11,8 +11,19 @@ import {
 import { useOrders, ProductionOrder } from "@/context/OrdersContext";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { StatusBadge } from "./StatusBadge";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import CancelIcon from "@mui/icons-material/Cancel";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 
 const GRID_LAYOUT = "minmax(0, 1fr) 96px 80px 64px";
+
+const statusIcons = {
+  planned: <ScheduleIcon fontSize="small" color="action" />,
+  in_progress: <HourglassEmptyIcon fontSize="small" color="primary" />,
+  completed: <CheckCircleIcon fontSize="small" color="success" />,
+  cancelled: <CancelIcon fontSize="small" color="error" />,
+};
 
 const OrderRow: React.FC<{
   order: ProductionOrder;
@@ -57,7 +68,6 @@ const OrderRow: React.FC<{
         },
       }}
     >
-      {/* Plan/Order */}
       <Stack direction="row" alignItems="center" spacing={1} minWidth={0}>
         <Typography
           variant="body2"
@@ -73,12 +83,14 @@ const OrderRow: React.FC<{
         </Typography>
       </Stack>
 
-      {/* Status */}
-      <Box display="flex" justifyContent="center" sx={{ marginLeft: "40px" }}>
+      <Box
+        display="flex"
+        justifyContent="center"
+        sx={{ marginLeft: "40px", alignItems: "center", gap: 0.5 }}
+      >
         <StatusBadge status={order.status} size="small" />
       </Box>
 
-      {/* Duration */}
       <Typography
         variant="caption"
         color="text.secondary"
@@ -87,14 +99,8 @@ const OrderRow: React.FC<{
         {duration} {duration === 1 ? "day" : "days"}
       </Typography>
 
-      {/* Progress */}
       <Box display="flex" justifyContent="flex-end">
-        <CircularProgress
-          variant="determinate"
-          value={order.progress}
-          size={18}
-          thickness={6}
-        />
+        {statusIcons[order.status]}
       </Box>
     </ListItemButton>
   );
@@ -120,7 +126,6 @@ export const OrderList: React.FC = () => {
         boxShadow: 1,
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           px: 2,
@@ -138,7 +143,6 @@ export const OrderList: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Column Headings */}
       <Box
         sx={{
           display: "grid",
@@ -175,7 +179,6 @@ export const OrderList: React.FC = () => {
       </Box>
       <Divider />
 
-      {/* Orders List */}
       <List disablePadding>
         {filtered.map((o, idx) => (
           <OrderRow
