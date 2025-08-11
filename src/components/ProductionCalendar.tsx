@@ -5,14 +5,11 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Paper,
   Stack,
-  Tooltip,
   Typography,
   Tabs,
   Tab,
   Divider,
-  Chip,
   TextField,
   Select,
   FormControl,
@@ -23,11 +20,7 @@ import {
   Add,
   FilterList,
 } from "@mui/icons-material";
-import {
-  useOrders,
-  OrderStatus,
-  ProductionOrder,
-} from "@/context/OrdersContext";
+import { useOrders, OrderStatus } from "@/context/OrdersContext";
 import {
   format,
   startOfMonth,
@@ -37,137 +30,12 @@ import {
   addDays,
   parseISO,
 } from "date-fns";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  useDraggable,
-  useDroppable,
-} from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay } from "@dnd-kit/core";
 import { OrderDialog } from "./OrderDialog";
 import { StatusBadge } from "./StatusBadge";
 import { OrderList } from "./OrderList";
-
-function DayDroppable({
-  date,
-  children,
-}: {
-  date: Date;
-  children?: React.ReactNode;
-}) {
-  const id = format(date, "yyyy-MM-dd");
-  const { setNodeRef, isOver } = useDroppable({ id });
-
-  const isToday =
-    format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-  const isCurrentMonth = date.getMonth() === new Date().getMonth();
-
-  return (
-    <Paper
-      ref={setNodeRef}
-      variant="outlined"
-      sx={{
-        p: 1.2,
-        minHeight: 112,
-        borderRadius: 2,
-        borderColor: isToday ? "primary.main" : "divider",
-        bgcolor: isOver
-          ? "action.hover"
-          : !isCurrentMonth
-          ? "action.selectedOpacity"
-          : "background.paper",
-        boxShadow: isToday ? 2 : "none",
-        transition: "background-color 0.2s ease, box-shadow 0.2s ease",
-        "&:hover": {
-          bgcolor: "action.hover",
-        },
-      }}
-    >
-      <Stack spacing={1}>
-        <Typography
-          variant="caption"
-          color={isCurrentMonth ? "text.secondary" : "text.disabled"}
-          fontWeight={isToday ? 700 : 400}
-          sx={{
-            bgcolor: isToday ? "primary.main" : "transparent",
-            color: isToday ? "common.white" : "inherit",
-            px: isToday ? 0.8 : 0,
-            py: isToday ? 0.2 : 0,
-            borderRadius: 1,
-            display: "inline-block",
-            alignSelf: "flex-start",
-          }}
-        >
-          {format(date, "d")}
-        </Typography>
-        {children}
-      </Stack>
-    </Paper>
-  );
-}
-
-function OrderChip({ order }: { order: ProductionOrder }) {
-  const { attributes, listeners, setNodeRef } = useDraggable({ id: order.id });
-  const { hoveredId, setHoveredId, selectedId } = useOrders();
-  const isHoveredActive = !!hoveredId && hoveredId !== order.id;
-  const isSelected = selectedId === order.id;
-  const label = `${order.code.slice(0, 6).toUpperCase()}`;
-
-  const isPlanned = order.status === "planned";
-  const sx = isPlanned
-    ? { borderColor: "warning.main", color: "warning.main" }
-    : order.status === "completed"
-    ? { bgcolor: "success.main", color: "common.white" }
-    : order.status === "in_progress"
-    ? { bgcolor: "info.main", color: "common.white" }
-    : { bgcolor: "grey.300", color: "text.primary" };
-
-  return (
-    <Tooltip
-      title={
-        <Box>
-          <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-            {label}
-          </Typography>
-          <Typography variant="caption">{order.area}</Typography>
-          <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-            <StatusBadge status={order.status} />
-            <Typography variant="caption">
-              {format(parseISO(order.start), "MMM d")} –{" "}
-              {format(parseISO(order.end), "MMM d")}
-            </Typography>
-          </Stack>
-        </Box>
-      }
-      arrow
-      enterDelay={200}
-    >
-      <Chip
-        ref={setNodeRef}
-        {...listeners}
-        {...attributes}
-        size="small"
-        label={label}
-        variant={isPlanned ? "outlined" : "filled"}
-        sx={{
-          ...sx,
-          opacity: isHoveredActive ? 0.3 : 1,
-          borderWidth: isPlanned || isSelected ? 2 : 0,
-          borderColor: isSelected
-            ? "primary.main"
-            : isPlanned
-            ? "warning.main"
-            : undefined,
-          fontWeight: 700,
-          justifyContent: "flex-start",
-          boxShadow: isSelected ? 3 : 0,
-        }}
-        onMouseEnter={() => setHoveredId(order.id)}
-        onMouseLeave={() => setHoveredId(null)}
-      />
-    </Tooltip>
-  );
-}
+import DayDroppable from "./DayDroppable";
+import OrderChip from "./OrderChip";
 
 function useMonthMatrix(viewDate: Date) {
   const start = startOfWeek(startOfMonth(viewDate));

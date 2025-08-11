@@ -7,7 +7,6 @@ import {
   Button,
   TextField,
   MenuItem,
-  Box,
   Autocomplete,
   Chip,
   Snackbar,

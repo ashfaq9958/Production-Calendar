@@ -112,6 +112,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: "Libertinus Sans", sans-serif !important;
   }
 }
